@@ -1,0 +1,60 @@
+{
+    "filesReplacement": [
+        {
+            "sourceFile": ".\\filereplacement\\.forceignore",
+            "targetFile": ".forceignore"
+        },
+        {
+            "sourceFile": ".\\filereplacement\\README.md",
+            "targetFile": "README.md"
+        }
+    ],
+    "workflows": {
+        "alerts": [
+            {
+                "filename": "Example__c.workflow-meta.xml",
+                "mailAddress": "example@example.com",
+                "alerts": [
+                    "ExampleEmailAlert",
+                    "ExampleEmailAlert2"
+                ]
+            },
+            {
+                "filename": "Test__c.workflow-meta.xml",
+                "mailAddress": "test@test.com",
+                "alerts": [
+                    "TestEmailAlert",
+                    "TestEmailAlert2"
+                ]
+            }
+        ]
+    },
+    "quickActions": {
+        "SendEmail": [
+            {
+                "mailAddress": "example@example.com",
+                "files": [
+                    "Example__c.SendEmail.quickAction-meta.xml"
+                ]
+            }
+        ]
+    },
+        "duplicationRule": [
+        {
+            "fileName": "Account.Account_Exact_Name.duplicateRule-meta.xml",
+            "sortOrder": 2
+        },
+        {
+            "fileName": "Account.Account_Fuzzy_Name.duplicateRule-meta.xml",
+            "sortOrder": 3
+        },
+        {
+            "fileName": "Account.Account_Name_Phone.duplicateRule-meta.xml",
+            "sortOrder": 4
+        },
+        {
+            "fileName": "Account.Account_Name_Website.duplicateRule-meta.xml",
+            "sortOrder": 5
+        }
+    ]
+}
