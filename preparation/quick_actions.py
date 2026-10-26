@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from utils.logger import get_logger
+from utils.path_security import resolve_within
 
 
 # Salesforce Metadata API XML namespace.
@@ -130,13 +131,17 @@ def process_quick_actions_send_email(project_root, quick_actions_config):
 
             # The filename is expected to contain the complete XML filename.
             # Example: Send_Email_To_Requester.quickAction-meta.xml
-            quick_action_path = (
+            quick_actions_directory = (
                 project_root
                 / "force-app"
                 / "main"
                 / "default"
                 / "quickActions"
-                / filename
+            )
+            quick_action_path = resolve_within(
+                quick_actions_directory,
+                filename,
+                "Quick Action filename"
             )
 
             # Stop the preparation stage if the configured file is missing.

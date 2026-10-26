@@ -9,6 +9,7 @@ import shutil
 from pathlib import Path
 
 from utils.logger import get_logger
+from utils.path_security import resolve_within
 
 
 def process_files_replacement(project_root, files_replacement):
@@ -84,13 +85,17 @@ def process_files_replacement(project_root, files_replacement):
                 "a valid 'targetFile'."
             )
 
-        # Normalize Windows path separators before creating Path objects.
-        source_path = project_root / Path(
-            source_file.replace("\\", "/")
+        # Resolve both configured paths and reject absolute paths, traversal,
+        # and symlinks that escape the Salesforce project root.
+        source_path = resolve_within(
+            project_root,
+            source_file,
+            "File replacement sourceFile"
         )
-
-        target_path = project_root / Path(
-            target_file.replace("\\", "/")
+        target_path = resolve_within(
+            project_root,
+            target_file,
+            "File replacement targetFile"
         )
 
         # Make sure the source file exists.

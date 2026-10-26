@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from utils.logger import get_logger
+from utils.path_security import resolve_within
 
 
 # Salesforce Metadata API XML namespace.
@@ -108,13 +109,17 @@ def process_duplication_rules(project_root, duplication_rules_config):
             )
 
         # Build the complete path to the Duplicate Rule XML file.
-        duplicate_rule_path = (
+        duplicate_rules_directory = (
             project_root
             / "force-app"
             / "main"
             / "default"
             / "duplicateRules"
-            / file_name
+        )
+        duplicate_rule_path = resolve_within(
+            duplicate_rules_directory,
+            file_name,
+            "Duplicate Rule filename"
         )
 
         # Stop the preparation stage if the configured file is missing.

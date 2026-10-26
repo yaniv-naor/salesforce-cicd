@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from utils.logger import get_logger
+from utils.path_security import resolve_within
 
 
 # Salesforce Metadata API XML namespace.
@@ -157,7 +158,11 @@ def process_workflows_alerts(project_root, workflows_config):
 
         # Resolve the configured file relative to the Salesforce Workflow
         # directory.
-        workflow_file = workflows_directory / filename
+        workflow_file = resolve_within(
+            workflows_directory,
+            filename,
+            "Workflow filename"
+        )
 
         # Stop immediately if the explicitly configured file does not exist.
         if not workflow_file.is_file():

@@ -19,6 +19,8 @@ Salesforce-specific error handling or parsing logic.
 """
 
 import os
+import queue
+import signal
 import subprocess
 import sys
 import threading
@@ -180,53 +182,71 @@ def prepare_command(command):
     return prepared_command
 
 
-def run_command(command):
-    """
-    Execute an external command and stream its output in real time.
+def _terminate_process_tree(process):
+    """Terminate the command and its child processes where supported."""
+    if process.poll() is not None:
+        return
 
-    The complete output is written to the CI/CD log file as it is received.
-    The output is also collected and returned to the caller so that other
-    modules can inspect the complete command output after the process finishes.
+    try:
+        if os.name == "nt":
+            # taskkill /T targets descendants created by CLI wrappers such as sf.cmd.
+            subprocess.run(
+                ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=10
+            )
+        else:
+            os.killpg(process.pid, signal.SIGKILL)
+    except (OSError, subprocess.SubprocessError):
+        try:
+            process.kill()
+        except OSError:
+            pass
 
-    UTF-8 is explicitly used when decoding command output because Salesforce
-    CLI can return non-ASCII content, including Hebrew text.
 
-    Salesforce CLI progress bars are disabled for CI/CD execution through
-    the SF_USE_PROGRESS_BAR environment variable. This prevents interactive
-    progress updates from being repeatedly captured as separate output blocks.
-
-    A console spinner runs while the external command is executing so that
-    long-running validation and deployment operations visibly remain active.
+def run_command(command, timeout=600, max_output_bytes=10 * 1024 * 1024):
+    """Run a command, stream output to the log, and enforce resource limits.
 
     Args:
-        command (list[str]):
-            Command and arguments to execute.
+        command (list[str]): Command and arguments to execute.
+        timeout (int | float): Maximum runtime in seconds (default: 10 minutes).
+        max_output_bytes (int): Maximum output retained in memory. Output is
+            still streamed to the log; exceeding this limit terminates the
+            command and returns exit code 125 to avoid incomplete JSON being
+            mistaken for a successful command result.
 
     Returns:
-        CommandResult:
-            Structured result containing the command exit code and
-            complete command output.
+        CommandResult: Exit code and captured output.
 
     Raises:
-        RuntimeError:
-            If the external command cannot be started.
+        ValueError: If a resource limit is invalid.
+        RuntimeError: If the external command cannot be started.
     """
+    if timeout is not None and (not isinstance(timeout, (int, float)) or timeout <= 0):
+        raise ValueError("timeout must be a positive number of seconds or None.")
+    if not isinstance(max_output_bytes, int) or max_output_bytes <= 0:
+        raise ValueError("max_output_bytes must be a positive integer.")
 
     logger = get_logger()
-
     prepared_command = prepare_command(command)
-
-    logger.info(
-        f"Command: {' '.join(prepared_command)}"
-    )
+    logger.info(f"Command: {' '.join(prepared_command)}")
 
     process_environment = os.environ.copy()
-
     process_environment["SF_USE_PROGRESS_BAR"] = "false"
+    spinner = CommandSpinner("Executing Salesforce command")
+    output_queue = queue.Queue()
+    output_chunks = []
+    captured_bytes = 0
+    output_limit_exceeded = False
+    timed_out = False
 
-    spinner = CommandSpinner(
-        "Executing Salesforce command"
-    )
+    popen_options = {}
+    if os.name == "nt":
+        popen_options["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        popen_options["start_new_session"] = True
 
     try:
         process = subprocess.Popen(
@@ -237,46 +257,87 @@ def run_command(command):
             encoding="utf-8",
             errors="replace",
             bufsize=1,
-            env=process_environment
+            env=process_environment,
+            **popen_options
         )
 
-        output_lines = []
+        def read_output():
+            try:
+                for output_line in process.stdout:
+                    output_queue.put(output_line)
+            finally:
+                output_queue.put(None)
 
+        reader = threading.Thread(target=read_output, daemon=True)
+        reader.start()
         spinner.start()
+        deadline = None if timeout is None else time.monotonic() + timeout
+        stream_finished = False
 
-        for line in process.stdout:
-            output_lines.append(line)
+        while not stream_finished:
+            remaining = None if deadline is None else deadline - time.monotonic()
+            if remaining is not None and remaining <= 0:
+                timed_out = True
+                _terminate_process_tree(process)
+                deadline = None
+                # Continue draining output after termination, without another timeout.
+                continue
 
-            logger.debug(
-                line.rstrip("\r\n")
-            )
+            try:
+                item = output_queue.get(timeout=remaining)
+            except queue.Empty:
+                timed_out = True
+                _terminate_process_tree(process)
+                deadline = None
+                continue
+
+            if item is None:
+                stream_finished = True
+                continue
+
+            logger.debug(item.rstrip("\r\n"))
+            encoded_size = len(item.encode("utf-8", errors="replace"))
+            if not output_limit_exceeded and captured_bytes + encoded_size <= max_output_bytes:
+                output_chunks.append(item)
+                captured_bytes += encoded_size
+            elif not output_limit_exceeded:
+                output_limit_exceeded = True
+                logger.error(
+                    f"Command output exceeded the {max_output_bytes}-byte capture limit; "
+                    "terminating command to protect memory."
+                )
+                _terminate_process_tree(process)
 
         return_code = process.wait()
+        reader.join(timeout=2)
 
-        output = "".join(output_lines)
+        if timed_out:
+            return_code = 124
+            output_chunks.append(
+                f"\n[ERROR] Command timed out after {timeout} seconds.\n"
+            )
+            logger.error(f"Command timed out after {timeout} seconds.")
+        elif output_limit_exceeded:
+            return_code = 125
+            output_chunks.append(
+                f"\n[ERROR] Output exceeded the {max_output_bytes}-byte limit; "
+                "command was terminated.\n"
+            )
 
         if return_code == 0:
-            logger.debug(
-                "Command completed successfully."
-            )
+            logger.debug("Command completed successfully.")
         else:
-            logger.debug(
-                f"Command failed with exit code {return_code}."
-            )
+            logger.debug(f"Command failed with exit code {return_code}.")
 
         return CommandResult(
             exit_code=return_code,
-            output=output
+            output="".join(output_chunks)
         )
 
     except OSError as error:
-        logger.error(
-            f"Failed to execute command: {error}"
-        )
-
+        logger.error(f"Failed to execute command: {error}")
         raise RuntimeError(
             f"Failed to execute command: {prepared_command[0]}"
         ) from error
-
     finally:
         spinner.stop()
