@@ -20,16 +20,34 @@ This separation is a key design advantage: the workflow is not tied to a single 
 ## CI/CD workflow
 
 ```mermaid
-flowchart TD
-    A["Clone Salesforce project repository"] --> B["Clone CI/CD tool repository into the project root as Pipeline/"]
-    B --> C["Set pipeline environment variables"]
-    C --> D["Authenticate to the target Salesforce org"]
-    D --> E["Prepare project metadata and files"]
-    E --> F["Validate deployment (dry run)"]
-    F --> G{"Validation passed?"}
-    G -- "No" --> H["Stop and review errors"]
-    G -- "Yes" --> I["Approval, if required by the CI/CD system"]
-    I --> J["Deploy to Salesforce"]
+flowchart TB
+    A(["📁 Clone Salesforce Repo"])
+    B(["📁 Clone CI/CD Tool"])
+    C["⚙️ Configure"]
+    D["🔑 Authenticate"]
+    E["🛠️ Prepare"]
+    F["✓ Validate"]
+    G{"Validation passed?"}
+    H(["✅ Deploy"])
+    I(["❌ Errors & Logs"])
+
+    A --> B --> C --> D --> E --> F --> G
+    G -->|Yes| H
+    G -->|No| I
+
+    classDef process fill:#ffffff,stroke:#64748b,color:#1e293b,stroke-width:1.5px
+    classDef decision fill:#f1f5f9,stroke:#64748b,color:#1e293b,stroke-width:2px
+    classDef success fill:#ecfdf5,stroke:#16a34a,color:#166534,stroke-width:2px
+    classDef failure fill:#fef2f2,stroke:#dc2626,color:#991b1b,stroke-width:2px
+
+    class A,B,C,D,E,F process
+    class G decision
+    class H success
+    class I failure
+
+    linkStyle default stroke:#64748b,stroke-width:1.5px
+    linkStyle 6 stroke:#16a34a,stroke-width:2px
+    linkStyle 7 stroke:#dc2626,stroke-width:2px
 ```
 
 ## Prerequisites
