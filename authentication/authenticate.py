@@ -60,7 +60,7 @@ def authenticate(project_root):
     interfering with each other.
 
     After successful authentication, the Salesforce username returned by
-    the CLI is saved inside the Pipeline directory so that subsequent
+    the CLI is saved inside the main directory so that subsequent
     commands can explicitly target the same Org.
 
     Args:
@@ -180,19 +180,16 @@ def authenticate(project_root):
 
     # Store the target Org identifier inside the current CI/CD workspace.
     #
-    # This file is intentionally inside Pipeline so it belongs to the
-    # current job workspace. Different concurrent jobs therefore have
-    # different target_org.txt files.
+    # This file belongs to the current job workspace.
+    # Different concurrent jobs therefore have different target_org.txt files.
     target_org_file = (
         project_root
-        / "Pipeline"
         / "target_org.txt"
     )
-
-    # Make sure the Pipeline directory exists.
+    # Make sure the workspace directory exists.
     target_org_file.parent.mkdir(
-        parents=True,
-        exist_ok=True
+    parents=True,
+    exist_ok=True
     )
 
     # Write only the Salesforce username.

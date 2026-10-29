@@ -47,17 +47,17 @@ These files belong to, or are used alongside, the Salesforce project. Their exac
 | `config/before-deploy-dev.json` | Example environment-specific preparation configuration included with the tool. Use it as a reference when creating or adapting files for other environments. |
 | `config/before-deploy-{env}.json` | Environment-specific preparation rules selected by `SF_TARGET_ENV`, determining which preparation actions run before validation or deployment. |
 | `filereplacement/` | Holds replacement files referenced by file-replacement rules. Contents depend on the project and its configuration. |
-| `Pipeline/target_org.txt` | Stores the authenticated Salesforce username used by subsequent stages to target the intended org explicitly. |
-| `Pipeline/cicd.log` | Workflow log file used for troubleshooting. Logs must not contain authentication URLs, credentials, or other sensitive values. |
+| `target_org.txt` (in the Salesforce project root) | Stores the authenticated Salesforce username used by subsequent stages to target the intended org explicitly. |
+| `salesforce-cicd/cicd.log` | Workflow log file used for troubleshooting. Logs must not contain authentication URLs, credentials, or other sensitive values. |
 
 ## 6. Typical execution flow
 
-1. **Checkout:** The CI/CD job clones the Salesforce source repository and this tool repository, placing the tool under `Pipeline/`.
+1. **Checkout:** The CI/CD job clones the Salesforce source repository and this tool repository, placing the tool under `salesforce-cicd/`.
 2. **Configure:** The job securely provides `auth_url` and sets `SF_TARGET_ENV`.
-3. **Authenticate:** Run `python Pipeline/cicd.py authenticate`.
-4. **Prepare:** Run `python Pipeline/cicd.py prepare`.
-5. **Validate:** Run `python Pipeline/cicd.py validate` to perform a dry-run validation.
-6. **Deploy:** After successful validation and any required approvals, run `python Pipeline/cicd.py deploy`.
+3. **Authenticate:** Run `python .\salesforce-cicd\cicd.py authenticate`.
+4. **Prepare:** Run `python .\salesforce-cicd\cicd.py prepare`.
+5. **Validate:** Run `python .\salesforce-cicd\cicd.py validate` to perform a dry-run validation.
+6. **Deploy:** After successful validation and any required approvals, run `python .\salesforce-cicd\cicd.py deploy`.
 
 ## 7. Responsibility boundary
 

@@ -125,7 +125,6 @@ def deployment(project_root, validate_only=False):
 
     target_org_file = (
         project_root
-        / "Pipeline"
         / "target_org.txt"
     )
 

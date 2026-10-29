@@ -17,3 +17,6 @@ __pycache__/
 
 # Runtime logs and local debug output
 *.log
+
+# local files
+.localfiles/

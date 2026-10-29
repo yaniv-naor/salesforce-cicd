@@ -4,14 +4,14 @@ A reusable Python-based CI/CD workflow for Salesforce projects. The workflow kee
 
 ## Why this project?
 
-The Salesforce project source code lives in its own repository. The CI/CD workflow is maintained separately and cloned into the project workspace (for example, under `Pipeline/`) by the CI/CD job.
+The Salesforce project source code lives in its own repository. The CI/CD workflow is maintained separately and cloned into a `salesforce-cicd/` directory under the Salesforce project root by the CI/CD job.
 
 This separation is a key design advantage: the workflow is not tied to a single CI/CD product. Platforms such as Azure DevOps, Jenkins, GitLab CI, or other runners can invoke the same Python commands, while each platform handles checkout, secrets, approvals, and job orchestration.
 
 ## Workflow
 
 1. **Checkout the Salesforce project** — Clone the repository containing the Salesforce source code into the runner workspace.
-2. **Checkout this CI/CD tool** — Clone this repository into a `Pipeline/` directory under the Salesforce project root.
+2. **Checkout this CI/CD tool** — Clone this repository into a `salesforce-cicd/` directory under the Salesforce project root.
 3. **Provide configuration and secrets** — The CI/CD platform supplies the required environment variables securely. Environment-specific preparation rules are stored in configuration files.
 4. **Authenticate** — Authenticate to the target Salesforce org.
 5. **Prepare** — Apply the configured file replacements and supported metadata updates.
@@ -76,36 +76,36 @@ The Salesforce project should also contain the relevant configuration and any fi
 
 ## Commands
 
-Run the commands from the Salesforce project root, with this repository cloned under `Pipeline/`.
+Run the commands from the Salesforce project root, with this repository cloned under `salesforce-cicd/`.
 
 ### 1. Authenticate
 
-```bash
-python Pipeline/cicd.py authenticate
+```powershell
+python .\salesforce-cicd\cicd.py authenticate
 ```
 
 Authenticates to Salesforce and records the authenticated target org information for subsequent stages. The workflow targets the selected org explicitly instead of relying on a shared Salesforce CLI default org.
 
 ### 2. Prepare
 
-```bash
-python Pipeline/cicd.py prepare
+```powershell
+python .\salesforce-cicd\cicd.py prepare
 ```
 
 Applies the preparation rules selected for `SF_TARGET_ENV`, including configured file replacements and supported Salesforce metadata updates. Run this before validation or deployment.
 
 ### 3. Validate
 
-```bash
-python Pipeline/cicd.py validate
+```powershell
+python .\salesforce-cicd\cicd.py validate
 ```
 
 Runs a validation-only deployment (dry run) against the target org. It helps identify metadata and test failures without deploying the changes.
 
 ### 4. Deploy
 
-```bash
-python Pipeline/cicd.py deploy
+```powershell
+python .\salesforce-cicd\cicd.py deploy
 ```
 
 Deploys the prepared source to the authenticated target org. Run it only after the required validation and any approvals required by your organization.
