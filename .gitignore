@@ -19,4 +19,4 @@ __pycache__/
 *.log
 
 # local files
-.localfiles/*
+localfiles/
