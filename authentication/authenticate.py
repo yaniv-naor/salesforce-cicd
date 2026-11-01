@@ -51,9 +51,8 @@ def authenticate(project_root):
     """
     Authenticate to the Salesforce organization.
 
-    The Salesforce project's existing config/config.json file is used as
-    the source for the SFDX authentication URL, preserving the current
-    project structure.
+    The config/config.json file is used as the source for the SFDX
+    authentication URL, preserving the current project structure.
 
     The Salesforce CLI default Org mechanism is intentionally not used.
     This prevents concurrent CI/CD jobs running on the same server from

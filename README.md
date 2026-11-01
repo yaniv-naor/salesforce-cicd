@@ -62,7 +62,9 @@ flowchart TB
 
 ### Authentication
 
-The Salesforce project's `config/config.json` is a standard Salesforce-generated project configuration file. It already contains the `#{auth_url}#` placeholder expected by this workflow; you do not need to add the placeholder manually.
+The `config/config.json` file is a custom configuration file required by this CI/CD workflow.
+Copy the provided `config.json` file from the `config/` directory of the `salesforce-cicd` project into the Salesforce project's `config/` directory.
+The file contains the `#{auth_url}#` placeholder expected by the workflow.
 
 The CI/CD platform should provide `auth_url` as a secret variable. The workflow substitutes the value at runtime before invoking Salesforce CLI authentication. Do not commit a real authentication URL or print it in logs.
 

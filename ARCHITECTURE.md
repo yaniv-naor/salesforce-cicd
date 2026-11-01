@@ -43,7 +43,7 @@ These files belong to, or are used alongside, the Salesforce project. Their exac
 
 | File or directory | Purpose |
 |---|---|
-| Salesforce project: `config/config.json` | Standard Salesforce-generated project configuration. It already contains the `#{auth_url}#` placeholder expected by the tool; the workflow substitutes the secret at runtime. |
+| Salesforce project: `config/config.json` | Custom configuration file required by this CI/CD workflow. It already contains the `#{auth_url}#` placeholder expected by the tool; the workflow substitutes the secret at runtime. |
 | `config/before-deploy-dev.json` | Example environment-specific preparation configuration included with the tool. Use it as a reference when creating or adapting files for other environments. |
 | `config/before-deploy-{env}.json` | Environment-specific preparation rules selected by `SF_TARGET_ENV`, determining which preparation actions run before validation or deployment. |
 | `filereplacement/` | Holds replacement files referenced by file-replacement rules. Contents depend on the project and its configuration. |

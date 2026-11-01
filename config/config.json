@@ -1,0 +1,3 @@
+{
+    "sfdxAuthUrl": "#{auth_url}#"
+}
