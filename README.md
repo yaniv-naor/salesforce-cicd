@@ -58,19 +58,22 @@ flowchart TB
 - A CI/CD runner with access to both repositories
 - Salesforce authentication credentials and the required org permissions
 
-## Configuration
+### Configuration
+
+| Variable | Type | Description |
+|---|---|---|
+| `auth_url` | Secret | Salesforce authentication URL for the target org. |
+| `SF_TARGET_ENV` | Environment variable | Target environment for deployment. Accepted values: `dev`, `test`, `prod`. |
 
 ### Authentication
 
-The `config/config.json` file is a custom configuration file required by this CI/CD workflow.
-Copy the provided `config.json` file from the `config/` directory of the `salesforce-cicd` project into the Salesforce project's `config/` directory.
-The file contains the `#{auth_url}#` placeholder expected by the workflow.
+The `config/config.json` file is a custom configuration file required by this CI/CD workflow. Copy the provided `config.json` file from the `config/` directory of the `salesforce-cicd` project into the Salesforce project's `config/` directory. The file contains the `#{auth_url}#` placeholder expected by the workflow.
 
 The CI/CD platform should provide `auth_url` as a secret variable. The workflow substitutes the value at runtime before invoking Salesforce CLI authentication. Do not commit a real authentication URL or print it in logs.
 
 ### Environment-specific preparation
 
-Set `SF_TARGET_ENV` to select the target environment (for example, `dev`, `test`, or `prod`). The workflow uses the corresponding `before-deploy-{env}.json` configuration.
+Set `SF_TARGET_ENV` to select the target environment (`dev`, `test`, or `prod`). The workflow uses the corresponding `before-deploy-{env}.json` configuration.
 
 An example file, `config/before-deploy-dev.json`, is included. Use it as a reference when preparing configuration for other environments, and adjust the rules to match the Salesforce project.
 
