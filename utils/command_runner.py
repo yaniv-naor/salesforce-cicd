@@ -235,6 +235,7 @@ def run_command(command, timeout=600, max_output_bytes=10 * 1024 * 1024):
 
     process_environment = os.environ.copy()
     process_environment["SF_USE_PROGRESS_BAR"] = "false"
+    process_environment["SF_DISABLE_TELEMETRY"] = "true"
     spinner = CommandSpinner("Executing Salesforce command")
     output_queue = queue.Queue()
     output_chunks = []
