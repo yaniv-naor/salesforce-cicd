@@ -125,6 +125,7 @@ def deployment(project_root, validate_only=False):
 
     target_org_file = (
         project_root
+        /"salesforce-cicd"
         / "target_org.txt"
     )
 

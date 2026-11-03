@@ -183,6 +183,7 @@ def authenticate(project_root):
     # Different concurrent jobs therefore have different target_org.txt files.
     target_org_file = (
         project_root
+        /"salesforce-cicd"
         / "target_org.txt"
     )
     # Make sure the workspace directory exists.
