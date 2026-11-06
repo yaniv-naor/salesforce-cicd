@@ -34,24 +34,22 @@ def get_required_variable(name):
     return value
 
 
-def load_environment():
+def load_auth_url():
     """
-    Load and validate all CI/CD environment variables required by the Engine.
-
-    Returns:
-        dict: Validated environment configuration.
-
-    Raises:
-        ValueError: If SF_TARGET_ENV contains an unsupported environment.
+    Load and validate the Salesforce authentication URL.
     """
-
     # Read the Salesforce authentication URL from the CI/CD environment.
-    auth_url = get_required_variable("auth_url")
+    return get_required_variable("auth_url")
 
+
+def load_target_env():
+    """
+    Load and validate the target Salesforce environment.
+    """
     # Read the target Salesforce environment from the CI/CD environment.
     target_env = get_required_variable("SF_TARGET_ENV").lower()
 
-    # Define the environments supported by the CI/CD Engine.
+    # Define the environments supported by the CI/CD.
     allowed_environments = {
         "dev",
         "test",
@@ -65,8 +63,4 @@ def load_environment():
             f"Allowed values are: {', '.join(sorted(allowed_environments))}."
         )
 
-    # Return all validated environment values to the Engine.
-    return {
-        "auth_url": auth_url,
-        "target_env": target_env
-    }
+    return target_env

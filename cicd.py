@@ -26,7 +26,10 @@ from pathlib import Path
 
 from authentication.authenticate import authenticate
 from configuration.config_manager import apply_auth_url
-from configuration.environment import load_environment
+from configuration.environment import (
+    load_auth_url,
+    load_target_env
+)
 from deployment.deployment import deployment
 from preparation.prepare import prepare
 from utils.error_parser import (
@@ -578,11 +581,11 @@ def main():
                 "------------------------------------------------------------"
             )
 
-            environment = load_environment()
+            auth_url = load_auth_url()
 
             apply_auth_url(
                 project_root,
-                environment["auth_url"]
+                auth_url
             )
 
             authentication = authenticate(
@@ -641,11 +644,11 @@ def main():
                 "------------------------------------------------------------"
             )
 
-            environment = load_environment()
+            target_env = load_target_env()
 
             prepare(
                 project_root,
-                environment["target_env"]
+                target_env
             )
 
             _display_final_summary(
